@@ -9,6 +9,12 @@
 #define MAX_CHAR 15
 #define MAX_WEBSITE_LIST 8
 
+typedef struct Data_Bace {
+  char name[MAX_CHAR];
+  char user_id[MAX_CHAR];
+  char user_pw[MAX_CHAR];
+}DB;
+
 int LOGIN(int web_number, char DB[][MAX_USER][4][MAX_CHAR], int user_Count[],
           int log_in[][3],
           char website_name[][MAX_CHAR]);  // 사이트 로그인 시스템
