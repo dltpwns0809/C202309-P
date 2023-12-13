@@ -93,9 +93,9 @@ int website_connect(int log_in[][3], char website_name[][MAX_CHAR], int select,
        "내 정보/로그인"},
       {"7", "네이버메일", "GOOGLE", "JNU PORTAL", "GITHUB", "YOUTUBE",
        "PROGRAMMERS", "내 정보/로그인"},
-      {"3", "내학사행정", "e클래스", "내 정보/로그인", "", "", ""},
+      {"2", "e클래스", "내 정보/로그인", "", "", "", ""},
       {"2", "Repositories", "내 정보/로그인", "", "", "", ""},
-      {"3", "쇼츠", "뮤직", "내 정보/로그인", "", "", ""},
+      {"2", "쇼츠", "내 정보/로그인", "", "", ""},
       {"2", "코딩테스트", "내 정보/로그인", "", "", "", ""}};
   while (1) {
     system("cls");
@@ -138,7 +138,8 @@ int website_connect(int log_in[][3], char website_name[][MAX_CHAR], int select,
           scroll = 0;
         }
       }
-      if ((choice == atoi(website_collection[select][0]) - 1)) {
+      if (((choice == atoi(website_collection[select][0]) - 1)) &&
+          (log_in[select][0] == 0)) {
         int list_checker = -1;
         int list_checker_2 = -1;
         int list_checker_3 = -1;
@@ -147,14 +148,6 @@ int website_connect(int log_in[][3], char website_name[][MAX_CHAR], int select,
           char login_button[3][MAX_CHAR] = {"로그인", "회원가입", "나가기"};
           while (list_checker == -1) {
             system("cls");
-            /* for (int i = 0; i < 3; i++) {
-              if (scroll_position == i) {
-                printf("> ");
-              } else {
-                printf("   ");
-              }
-              printf("(%d) %s\n", i + 1, login_button[i]);
-            }*/
             website_print(login_button, scroll_position, 3);
             keyboard_control(&scroll_position, 3, &list_checker);
           }
@@ -186,7 +179,6 @@ int website_connect(int log_in[][3], char website_name[][MAX_CHAR], int select,
                 strcpy_s(site_name_list[i], MAX_CHAR,
                          website_name[connected_site[select][i]]);
             }
-            // scroll_position_2 = 0;
             while (1) {
               system("cls");
               website_print(site_name_list, scroll_position_3,
@@ -201,20 +193,39 @@ int website_connect(int log_in[][3], char website_name[][MAX_CHAR], int select,
               }
               if (connected_site_number[select] == 0) {
                 printf("타 사이트로 로그인 할 수 없습니다.");
-                Sleep(2000);
+                Sleep(1000);
+                break;
               }
             }
           }
         }
         list_checker = -1;
         choice = -1;
-      } else if (choice == atoi(website_collection[select][0])) {
+      }
+      else if (((choice == atoi(website_collection[select][0]) - 1)) &&
+                 (log_in[select][0] == 1)) {
+        char react[10] = "";
+        system("cls");
+        printf("========내 정보=========\n");
+        printf("name : %s\n", DB[select][log_in[select][2]].name);
+        printf("id : %s\n", DB[select][log_in[select][2]].user_id);
+        printf("pw : %s\n", DB[select][log_in[select][2]].user_pw);
+        printf("========내 정보=========\n");
+        printf("로그아웃아시겠습니까?(yes/no)");
+        scanf_s("%s", react, (int)sizeof(react));
+        if (!strcmp(react, "yes")) {
+          log_in[select][0] = 0;
+          log_in[select][2] = 0;
+        }
+      }
+      else if (choice == atoi(website_collection[select][0])) {
         if (!log_in[select][1]) {
           log_in[select][0] = 0;
           log_in[select][2] = 0;
         }
         return 0;  // 나가기 버튼
       }
+      choice = -1;
     }
   }
 }
@@ -247,6 +258,7 @@ int connect_sign_up(int web_number, int connect_web, USER_DB DB[][MAX_USER],
       user_Count[web_number] += 1;
     }
   }
+  return 0;
 }
 
 // 반환값 :0 회원가입 취소
@@ -330,6 +342,7 @@ int sign_up(int web_number, USER_DB DB[][MAX_USER], int user_Count[],
            (int)sizeof(DB[web_number][user_Count[web_number]].name),
            check_name);
   user_Count[web_number] += 1;
+  return 0;
 }
 
 int LOGIN(int web_number, USER_DB DB[][MAX_USER], int user_Count[],
@@ -365,16 +378,16 @@ int LOGIN(int web_number, USER_DB DB[][MAX_USER], int user_Count[],
     }
   }
   system("cls");
-  for (int i = 0; i < *user_Count; i++) {
+  for (int i = 0; i < user_Count[web_number]; i++) {
     if ((strcmp(DB[web_number][i].user_id, login_id)) == 0) {
       if ((strcmp(DB[web_number][i].user_pw, login_pw)) == 0) {
         log_in[web_number][0] = 1;
         log_in[web_number][2] = i;
         check = 1;
         printf("====================\n");
-        printf("====상시 로그인(예/아니요)====\n");
+        printf("====상시 로그인(yes/no)====\n");
         scanf_s("%s", response, (int)sizeof(response));
-        if (strcmp(response, "예") == 0) {
+        if (strcmp(response, "yes") == 0) {
           log_in[web_number][1] = 1;
         } else {
           log_in[web_number][1] = 0;
@@ -390,4 +403,5 @@ int LOGIN(int web_number, USER_DB DB[][MAX_USER], int user_Count[],
     printf("=======로그인 실패=======\n");
     return 0;
   }
+  return 0;
 }
