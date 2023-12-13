@@ -11,13 +11,34 @@
 #define MAX_WEBSITE 6
 #define MAX_CHAR 30
 #define MAX_WEBSITE_LIST 8
+#define MAX_MAIL 100
 
 typedef struct Data_Bace {
   char name[MAX_CHAR];
   char user_id[MAX_CHAR];
   char user_pw[MAX_CHAR];
 } USER_DB;
-int connect_sign_up(int web_number, int connect_web, USER_DB DB[][MAX_USER],
+
+typedef struct mail {
+  char title[MAX_CHAR];
+  char sent_user[MAX_CHAR];
+  char received_user[MAX_CHAR];
+} MAIL;
+
+typedef struct mail_box {
+  int mail_num;
+  char received_mail_list[MAX_MAIL][MAX_CHAR];
+} USER_MAIL;
+
+
+int check_mail(char website_name[][MAX_CHAR], USER_DB DB[][MAX_USER],
+               int log_in[][3], int select, int user_Count[],
+               USER_MAIL MAIL[][MAX_USER]);
+int sent_mail(char website_name[][MAX_CHAR], USER_DB DB[][MAX_USER],
+               int sent_user,
+          int sent_user_site, int user_Count[], USER_MAIL MAIL[][MAX_USER]);
+int connect_sign_up(int web_number, int connect_web,
+                                            USER_DB DB[][MAX_USER],
                     int user_Count[], int log_in[][3],
                     char website_name[][MAX_CHAR]);
 int LOGIN(int web_number, USER_DB DB[][MAX_USER], int user_Count[],
@@ -31,7 +52,8 @@ void website_print(char website_name[][MAX_CHAR], int y,
                    int list_length);  // 웹사이트 목록 출력
 void CursorView();                    // 화면에서 코드 가리는 코드
 int website_connect(int log_in[][3], char website_name[][MAX_CHAR], int select,
-                    USER_DB DB[MAX_WEBSITE][MAX_USER], int user_Count[]);
+                    USER_DB DB[MAX_WEBSITE][MAX_USER], int user_Count[],
+                    USER_MAIL MAIL[][MAX_USER]);
 // 로그인 시스템 ex)학교 사이트
 
 int main() {
@@ -47,6 +69,13 @@ int main() {
   };  // 닉네임,id,pw
   */
   USER_DB DB[MAX_WEBSITE][MAX_USER];
+  USER_MAIL MAIL[2][MAX_USER];
+
+  for (int i = 0; i < 2; i++) {
+    for (int j = 0; j < MAX_USER; j++) {
+      MAIL[i][j].mail_num = 0;
+    }
+  }
   char website_name[MAX_WEBSITE][MAX_CHAR] = {
       "GOOGLE", "NAVER",   "JNU PORTAL",
       "GITHUB", "YOUTUBE", "PROGRAMMERS"};  // 사이트 이름 목록
@@ -54,6 +83,25 @@ int main() {
   int cursur_position_y = 0;
   // 커서 위치(높이)값
   int tester = 0;  // 테스트를 위한 변수 (while문 반복 횟수)
+
+
+  // 테스트용 계정 추가
+  /*
+  strcpy_s(DB[0][user_Count[0]].name, MAX_CHAR, "a1\0");
+  strcpy_s(DB[0][user_Count[0]].user_id, MAX_CHAR, "dltpwns0\0");
+  strcpy_s(DB[0][user_Count[0]].user_pw, MAX_CHAR, "qpemfh0\0");
+  user_Count[0] += 1;
+  strcpy_s(DB[0][user_Count[0]].name, MAX_CHAR, "a2\0");
+  strcpy_s(DB[0][user_Count[0]].user_id, MAX_CHAR, "dltpwns1\0");
+  strcpy_s(DB[0][user_Count[0]].user_pw, MAX_CHAR, "qpemfh1\0");
+  user_Count[0] += 1;
+  strcpy_s(DB[1][user_Count[1]].name, MAX_CHAR, "a3\0");
+  strcpy_s(DB[1][user_Count[1]].user_id, MAX_CHAR, "dltpwns2\0");
+  strcpy_s(DB[1][user_Count[1]].user_pw, MAX_CHAR, "qpemfh2\0");
+  user_Count[1] += 1;
+  */
+
+
   while (1) {
     system("cls");
     printf("%d", tester);
@@ -66,7 +114,7 @@ int main() {
     printf("%d\n", select);
     if (select != -1) {
       system("cls");
-      website_connect(log_in, website_name, select, DB, user_Count);
+      website_connect(log_in, website_name, select, DB, user_Count,MAIL);
       select = -1;
     }
 
@@ -85,13 +133,14 @@ void CursorView()  // 화면에서 커서를 가리는 코드
 }
 
 int website_connect(int log_in[][3], char website_name[][MAX_CHAR], int select,
-                    USER_DB DB[MAX_WEBSITE][MAX_USER], int user_Count[]) {
+                    USER_DB DB[MAX_WEBSITE][MAX_USER], int user_Count[],
+                    USER_MAIL MAIL[][MAX_USER]) {
   int choice = -1, scroll = 0;
   char website_collection[MAX_WEBSITE][MAX_WEBSITE_LIST][100] = {
       // index=0 은 그 배열에 포함된 빈 칸이 아닌 배열 갯수
       {"7", "메일", "NAVER", "JNU PORTAL", "GITHUB", "YOUTUBE", "PROGRAMMERS",
        "내 정보/로그인"},
-      {"7", "네이버메일", "GOOGLE", "JNU PORTAL", "GITHUB", "YOUTUBE",
+      {"7", "메일", "GOOGLE", "JNU PORTAL", "GITHUB", "YOUTUBE",
        "PROGRAMMERS", "내 정보/로그인"},
       {"2", "e클래스", "내 정보/로그인", "", "", "", ""},
       {"2", "Repositories", "내 정보/로그인", "", "", "", ""},
@@ -127,7 +176,7 @@ int website_connect(int log_in[][3], char website_name[][MAX_CHAR], int select,
       }
     }
     //
-    printf("%d %d\n", choice, select);
+    printf("%d %d %d\n", choice, select,scroll);
     keyboard_control(&scroll, atoi(website_collection[select][0]) + 1, &choice);
     if (choice != -1) {
       for (int i = 0; i < MAX_WEBSITE; i++) {
@@ -224,11 +273,140 @@ int website_connect(int log_in[][3], char website_name[][MAX_CHAR], int select,
           log_in[select][2] = 0;
         }
         return 0;  // 나가기 버튼
+      } else if (((select == 0)||(select ==1))&&(choice==0)){
+        if (log_in[select][0] == 1) {
+          int list_checker = -1;
+          int scroll_position = 0;
+          char mail_button[3][MAX_CHAR] = {"메일확인", "메일보내기", "나가기"};
+          while (list_checker == -1) {
+            system("cls");
+            website_print(mail_button, scroll_position, 3);
+            keyboard_control(&scroll_position, 3, &list_checker);
+          }
+          if (list_checker == 0) {
+            check_mail(website_name, DB,log_in, select, user_Count, MAIL);
+          } else if(list_checker == 1){
+            sent_mail(website_name, DB, log_in[select][2], select, user_Count,MAIL);
+          }
+          list_checker = -1;
+          
+        } else {
+          printf("로그인 상태가 아닙니다!");  
+          Sleep(1000);
+        }
       }
       choice = -1;
     }
   }
 }
+
+int check_mail(char website_name[][MAX_CHAR], USER_DB DB[][MAX_USER],
+                int log_in[][3], int select, int user_Count[],
+                USER_MAIL MAIL[][MAX_USER]) {
+  int list_checker = -1;
+  int scroll_position = 0;
+  char contents[1000];
+  while (list_checker ==-1) {
+    system("cls");
+    printf("=======메일보관함=======\n");
+    /* for (int i = 0; i < MAIL[select][log_in[select][2]].mail_num; i++) {
+      printf("(%d) %s\n", i + 1,
+             MAIL[select][log_in[select][2]].received_mail_list[i]);
+    }
+    printf("(%d) 나가기\n", MAIL[select][log_in[select][2]].mail_num);*/
+    website_print(MAIL[select][log_in[select][2]].received_mail_list,
+                  scroll_position,
+                  MAIL[select][log_in[select][2]].mail_num);
+    keyboard_control(&scroll_position, MAIL[select][log_in[select][2]].mail_num,
+                     &list_checker);
+  }
+  if (list_checker == MAIL[select][log_in[select][2]].mail_num) {
+    return 0;
+  }
+  system("cls");
+  char mail_name[MAX_CHAR+4] = "./";
+  strcat_s(mail_name, sizeof(mail_name),
+           MAIL[select][log_in[select][2]].received_mail_list[list_checker]);
+  strcat_s(mail_name, sizeof(mail_name), ".txt");
+
+  FILE* mail;
+  fopen_s(&mail, mail_name, "r");
+  while (mail == NULL) {
+    fopen_s(&mail, mail_name, "r");
+  }
+  while (fgets(contents, 1000, mail) != NULL) {
+    printf("%s", contents);
+  }
+  fclose(mail);
+  printf("===============");
+  printf("enter키 입력시 나가기");
+  printf("===============");
+  int delay = _getch();
+  return 0;
+}
+
+int sent_mail(char website_name[][MAX_CHAR], USER_DB DB[][MAX_USER], int sent_user,
+          int sent_user_site, int user_Count[], USER_MAIL MAIL[][MAX_USER]) {
+
+  char input_name[MAX_CHAR];
+  char title[MAX_CHAR];
+  int scroll = 0, select = -1;
+  char mail_name[MAX_CHAR + 4] = "./";
+  char contents[1000];
+  int received_user=-1;
+
+  while (select ==-1) {
+    system("cls");
+    printf("=======mail========\n");
+    printf("<보낼 사이트> \n");
+    website_print(website_name, scroll, 2);
+    keyboard_control(&scroll, 2, &select);
+  }
+  printf("Title : ");
+  scanf_s("%s", title, MAX_CHAR);
+  printf("User Name : ");
+  scanf_s("%s", input_name, MAX_CHAR);
+  for (int i = 0; i < user_Count[select]; i++) {
+    if (!strcmp(input_name, DB[select][i].name)) {
+      received_user = i;
+      break;
+    }
+  }
+  if (received_user == -1) return 0;
+  strcat_s(mail_name, sizeof(mail_name), title);
+  strcat_s(mail_name, sizeof(mail_name), ".txt");
+
+  FILE* mail;
+  fopen_s(&mail, mail_name, "w");
+  while (&mail == NULL) {
+    fopen_s(&mail, mail_name, "w");
+  }
+  fprintf(mail, "제목 : %s\n", title);
+  fprintf(mail, "보낸유저 : %s\n", DB[sent_user_site][sent_user].name);
+  fprintf(mail, "보낸유저사이트 : %d\n", sent_user_site);
+  fprintf(mail, "보낸유저번호 : %d\n", sent_user);
+
+  printf("내용(종료:EXIT 입력) : \n");
+  while (1) {
+    scanf_s("%[^\n]", contents, sizeof(contents));
+    getchar();
+    if (strcmp(contents, "EXIT") == 0) {
+      break;
+    }
+    fputs(contents, mail);
+    fputs("\n", mail);
+  }
+  fclose(mail);
+  strcpy_s(MAIL[select][received_user]
+             .received_mail_list[MAIL[select][received_user].mail_num],MAX_CHAR,
+         title); 
+  MAIL[select][received_user].mail_num += 1;
+  fclose(mail);
+  return 0;
+}
+
+
+
 
 int connect_sign_up(int web_number, int connect_web, USER_DB DB[][MAX_USER],
                     int user_Count[], int log_in[][3],
