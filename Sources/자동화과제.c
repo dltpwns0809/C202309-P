@@ -144,8 +144,8 @@ int website_connect(int log_in[][3], char website_name[][MAX_CHAR], int select,
        "PROGRAMMERS", "내 정보/로그인"},
       {"2", "e클래스", "내 정보/로그인", "", "", "", ""},
       {"2", "Repositories", "내 정보/로그인", "", "", "", ""},
-      {"2", "쇼츠", "내 정보/로그인", "", "", ""},
-      {"2", "코딩테스트", "내 정보/로그인", "", "", "", ""}};
+      {"1", "내 정보/로그인", "", "", "", ""},
+      {"1", "내 정보/로그인", "", "", "", "", ""}};
   while (1) {
     system("cls");
     printf("====접속된 사이트 : %s====\n", website_name[select]);
@@ -294,6 +294,15 @@ int website_connect(int log_in[][3], char website_name[][MAX_CHAR], int select,
           printf("로그인 상태가 아닙니다!");  
           Sleep(1000);
         }
+      } else if ((select == 2)&&(choice == 0)) {
+        ShellExecute(NULL, L"open",
+                     L"C://Program Files/Google/Chrome/Application/chrome.exe",
+                     L"https://sel.jnu.ac.kr/", NULL, SW_HIDE);
+      } else if ((select == 3) && (choice == 0)) {
+        ShellExecute(
+            NULL, L"open",
+                     L"C://Program Files/Google/Chrome/Application/chrome.exe",
+                     L"https://github.com/dltpwns0809?tab=repositories", NULL, SW_HIDE);
       }
       choice = -1;
     }
@@ -387,6 +396,7 @@ int sent_mail(char website_name[][MAX_CHAR], USER_DB DB[][MAX_USER], int sent_us
   fprintf(mail, "보낸유저번호 : %d\n", sent_user);
 
   printf("내용(종료:EXIT 입력) : \n");
+  char ch = getchar();
   while (1) {
     scanf_s("%[^\n]", contents, sizeof(contents));
     getchar();
